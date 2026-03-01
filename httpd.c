@@ -118,5 +118,7 @@ int main(int argc, char *argv[])
 
     printf("Listening on port: %hd", portNumber); // print message indicating listening status
 
+    run_service(fd); //
+
 
 }
