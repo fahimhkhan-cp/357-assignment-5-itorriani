@@ -8,6 +8,11 @@
 #include <signal.h>
 #include <stdlib.h>   
 #include <sys/wait.h> 
+#include <stdio.h>
+#include <stdlib.h>
+#include <fcntl.h>
+#include <sys/stat.h>
+#include <unistd.h>
 
 void sig_handler(int signum)
 {
@@ -28,7 +33,8 @@ void handle_request(int nfd)
 
    Change it so that it sends data back to client. 
    */
-   FILE *network = fdopen(nfd, "r");
+   FILE *network = fdopen(nfd, "r"); 
+
    char *line = NULL;
    size_t size;
    ssize_t num;
@@ -42,13 +48,64 @@ void handle_request(int nfd)
 
 
 
-   while ((num = getline(&line, &size, network)) >= 0) //waits for information from the clien
+   num = getline(&line, &size, network);
+
+   if (num == -1){ free(line); fclose(network); printf("error reading client"); return;  } //errors
+
+   //tokenize TYPE, FILENAME, HTTPVERSION
+   char *TYPE = strtok(line, " ");
+
+   char *FILENAME = strtok(NULL, " \n");
+
+   char *HTTPVERSION = strtok(NULL, " \n"); 
+
+   if (strcmp(TYPE, "GET") == 0)
+   {    
+        FILE *file = fopen(FILENAME, "r"); //open file for reading
+
+        char buff[500]; //create a massive buff for file contents
+
+        while (fgets(buff, sizeof(buff), file) != NULL)
+        {
+            //read contents into buff
+
+            write(nfd, buff, strlen(buff)); //write contents of buff back into desired fd
+        }
+
+
+
+   } else if (strcmp(TYPE, "HEAD") == 0)
    {
+        struct stat st;
 
-      write(nfd, line, num); //write back to the file descriptor
+        int fd1 = open(FILENAME, O_RDONLY); //open file descripto 
 
-      //printf("%s", line); //remove print statement
+        if (fd1 == -1) { printf("Error opening file"); return; } //error checking
+
+        lstat(FILENAME, &st); //populate stat struct with information 
+
+        long fileSize = st.st_size; // create variable for size
+
+        char fileSizeBuff[100]; //create string representation of fileSize
+
+        snprintf(fileSizeBuff, sizeof(fileSizeBuff), "%ld", fileSize); // write in fileSize into fileSizeBuff
+
+        char *headerInfo = "HTTP/1.0 200 OK\r\n"; //hardcode header info
+
+        char *contentTypeInfo = "Content-Type: text/html\r\n";
+
+        write(nfd, headerInfo, strlen(headerInfo)); //write headerInfo
+
+        write(nfd, fileSizeBuff, strlen(fileSizeBuff)); //write fileSizeBuff
+
+        write(nfd, contentTypeInfo, strlen(contentTypeInfo)); //write contentSizeInfo
+        
+    
    }
+
+
+
+
 
    free(line); // valgrind related
    fclose(network); //valgrind related
