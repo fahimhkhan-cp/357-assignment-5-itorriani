@@ -10,6 +10,7 @@
 #include <sys/wait.h> 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <fcntl.h>
 #include <sys/stat.h>
 #include <unistd.h>
@@ -149,6 +150,7 @@ void run_service(int fd)
             handle_request(nfd);
 
             _exit(0);
+
          } else 
          {
             close(nfd);
