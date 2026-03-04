@@ -45,7 +45,7 @@ void send_request(int fd)
 
       num = read(fd, line, size); //read result coming back from client side
 
-      printf("%s", num); // 'echo' the result. 
+      printf("%s", line); // 'echo' the result. 
    }
 
    free(line);
