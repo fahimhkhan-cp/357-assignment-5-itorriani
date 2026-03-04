@@ -74,7 +74,6 @@ void handle_request(int nfd)
         }
 
 
-
    } else if (strcmp(TYPE, "HEAD") == 0)
    {
         struct stat st;
@@ -100,7 +99,7 @@ void handle_request(int nfd)
         write(nfd, fileSizeBuff, strlen(fileSizeBuff)); //write fileSizeBuff
 
         write(nfd, contentTypeInfo, strlen(contentTypeInfo)); //write contentSizeInfo
-        
+   
     
    }
 
