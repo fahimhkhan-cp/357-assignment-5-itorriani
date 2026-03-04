@@ -15,6 +15,9 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
+
+#define PORT 2828
+
 void sig_handler(int signum)
 {
    while (waitpid(-1, NULL, WNOHANG) > 0) { //do nothing, just check for desired signal in loop }
@@ -162,21 +165,23 @@ void run_service(int fd)
 }
 
 
-int main(int argc, char *argv[])
+int main()
 {
     /*
     argv[1]: port number
     */
 
-    short portNumber = atoi(argv[1]); // define port number as a short
+    // short portNumber = atoi(argv[1]); // define port number as a short
 
-    int fd = create_service(portNumber); // create socket and bind to given port
+    int fd = create_service(PORT); // create socket and bind to given port
 
     if (fd == -1) { printf("%s", "Create service failed"); return 1; } //socket fail check
 
-    printf("Listening on port: %hd", portNumber); // print message indicating listening status
+    printf("Listening on port: %hd", PORT); // print message indicating listening status
 
     run_service(fd); //
+
+    return 0;
 
 
 }

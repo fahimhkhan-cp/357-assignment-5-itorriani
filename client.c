@@ -41,11 +41,15 @@ void send_request(int fd)
 
    while ((num = getline(&line, &size, stdin)) >= 0)
    {
-      write(fd, line, num);
+      write(fd, line, num); // write to file descriptor the line
+
+      char buff[256]; //create a buffer to hold result 
 
       num = read(fd, line, size); //read result coming back from client side
 
-      printf("%s", line); // 'echo' the result. 
+      read(fd, buff, 256); 
+
+      printf("%s", buff); 
    }
 
    free(line);
