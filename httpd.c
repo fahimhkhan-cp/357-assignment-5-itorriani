@@ -53,12 +53,14 @@ void handle_request(int nfd)
 
    num = getline(&line, &size, network);
 
+   
+
    if (num == -1){ free(line); fclose(network); printf("error reading client"); return;  } //errors
 
    //tokenize TYPE, FILENAME, HTTPVERSION
    char *TYPE = strtok(line, " ");
 
-   char *FILENAME = strtok(NULL, " \n");
+   char *FILENAME = strtok(NULL, " \r\n");
 
    char *HTTPVERSION = strtok(NULL, " \n"); 
 
@@ -68,6 +70,17 @@ void handle_request(int nfd)
 
    if (strcmp(TYPE, "GET") == 0)
    {    
+      
+      FILE *file = fopen(FILENAME, "r");
+      
+      if (file == NULL) {
+         perror("fopen");
+         const char *notfound = "HTTP/1.0 404 Not Found\r\nContent-Length: 0\r\n\r\n";
+         write(nfd, notfound, strlen(notfound));
+         free(line);
+         fclose(network);
+         return;
+}
         struct stat st; //intiialize stat structure
 
         lstat(FILENAME, &st); // populate stat struct
@@ -96,29 +109,14 @@ void handle_request(int nfd)
         write(nfd, "\r\n\r\n", 4);
 
 
-      FILE *file = fopen(FILENAME, "r");
-      if (file == NULL) {
-         perror("fopen");
-         const char *notfound = "HTTP/1.0 404 Not Found\r\nContent-Length: 0\r\n\r\n";
-         write(nfd, notfound, strlen(notfound));
-         free(line);
-         fclose(network);
-         return;
-}
 
-        char buff[500]; //create buff
+        char buff[10000]; //create buff
 
 
         while ((fgets(buff, sizeof(buff), file)) != NULL)
         {
-            int ret = write(nfd, buff, strlen(buff));
 
-         
-            printf("number associated with smomething: %d", ret);
-
-            printf("am i being read: %s", buff); 
-
-            write(nfd, buff, strlen(buff)); //write fie contents
+              
         }
 
         fclose(file); //close file

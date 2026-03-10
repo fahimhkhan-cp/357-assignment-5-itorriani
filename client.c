@@ -21,7 +21,7 @@ void validate_arguments(int argc, char *argv[])
     if (argc == 0)
     {
         fprintf(stderr, USAGE_STRING, "client");
-        exit(EXIT_FAILURE);
+        exit(EXIT_FAILURE); 
     }
     else if (argc < MIN_ARGS || argc > MAX_ARGS)
     {
@@ -32,20 +32,25 @@ void validate_arguments(int argc, char *argv[])
 
 void send_request(int fd)
 {
-   /*Reads line from the keyboard one at a time. 
-   
-   */
    char *line = NULL;
-   size_t size;
+   size_t size = 0;
    ssize_t num;
 
    while ((num = getline(&line, &size, stdin)) >= 0)
    {
-      write(fd, line, num); // write to file descriptor the line
+      if (write(fd, line, num) != num) {
+         perror("write");
+         break;
+      }
 
-      ssize_t numWriteBack; 
+      char buff[10001];
+      num = read(fd, buff, 10000);
 
-      while ((numWriteBack) == read())
+      if (num < 0) { perror("read"); break; }
+      if (num == 0) break; // server closed
+
+      // print exactly what we read (don’t rely on null terminators)
+      write(STDOUT_FILENO, buff, num);
    }
 
    free(line);
