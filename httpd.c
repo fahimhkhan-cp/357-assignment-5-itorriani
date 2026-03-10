@@ -65,25 +65,49 @@ void handle_request(int nfd)
 
    if (strcmp(TYPE, "GET") == 0)
    {    
-        FILE *file = fopen(FILENAME, "r"); //open file for reading
+        struct stat st; //intiialize stat structure
 
-        char buff[500]; //create a massive buff for file contents
+        lstat(FILENAME, &st); // populate stat struct
+
+        long fileSize = st.st_size; //create variable for file size
+        
+        char fileSizeBuff[100]; //create buffer for filesize
+
+        snprintf(fileSizeBuff, sizeof(fileSizeBuff), "%ld", fileSize); //write onto fileSize buffer
+
+        char *headerInfo = "HTTP/1.0 200 OK\r\n"; //hardcore header info
+
+        char *contentTypeInfo = "Content-Type: text/html\r\n"; //content type 
+
+        char *contentLengthLabel = "Content-Length: "; //content length
+
+        //write all info to client
+        write(nfd, headerInfo, strlen(headerInfo));
+
+        write(nfd, contentTypeInfo, strlen(contentTypeInfo));
+
+        write(nfd, contentLengthLabel, strlen(contentLengthLabel));
+
+        write(nfd, fileSizeBuff, strlen(fileSizeBuff));
+
+        write(nfd, "\r\n\r\n", 4); //create visual space
+
+        FILE *file = fopen(FILENAME, "r"); //open file
+
+        char buff[500]; //create buff
 
         while (fgets(buff, sizeof(buff), file) != NULL)
         {
-            //read contents into buff
-
-            write(nfd, buff, strlen(buff)); //write contents of buff back into desired fd
+            write(nfd, buff, strlen(buff)); //write fie contents
         }
+
+        fclose(file); //close file
+
 
 
    } else if (strcmp(TYPE, "HEAD") == 0)
    {
         struct stat st;
-
-        int fd1 = open(FILENAME, O_RDONLY); //open file descripto 
-
-        if (fd1 == -1) { printf("Error opening file"); return; } //error checking
 
         lstat(FILENAME, &st); //populate stat struct with information 
 
@@ -97,17 +121,22 @@ void handle_request(int nfd)
 
         char *contentTypeInfo = "Content-Type: text/html\r\n";
 
-        write(nfd, headerInfo, strlen(headerInfo)); //write headerInfo
+        char *contentLengthLabel = "Content-Length: ";
 
-        write(nfd, fileSizeBuff, strlen(fileSizeBuff)); //write fileSizeBuff
+        //write all info to client
 
-        write(nfd, contentTypeInfo, strlen(contentTypeInfo)); //write contentSizeInfo
+        write(nfd, headerInfo, strlen(headerInfo));
+
+        write(nfd, contentTypeInfo, strlen(contentTypeInfo));
+
+        write(nfd, contentLengthLabel, strlen(contentLengthLabel));
+
+        write(nfd, fileSizeBuff, strlen(fileSizeBuff));
+
+        write(nfd, "\r\n\r\n", 4); //create visual space
    
     
    }
-
-
-
 
 
    free(line); // valgrind related

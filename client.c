@@ -43,13 +43,9 @@ void send_request(int fd)
    {
       write(fd, line, num); // write to file descriptor the line
 
-      char buff[256]; //create a buffer to hold result 
+      ssize_t numWriteBack; 
 
-      num = read(fd, line, size); //read result coming back from client side
-
-      read(fd, buff, 256); 
-
-      printf("%s", buff); 
+      while ((numWriteBack) == read())
    }
 
    free(line);
