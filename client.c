@@ -36,24 +36,17 @@ void send_request(int fd)
    size_t size = 0;
    ssize_t num;
 
-   while ((num = getline(&line, &size, stdin)) >= 0)
-   {
-      if (write(fd, line, num) != num) {
-         perror("write");
-         break;
-      }
-
-      char buff[10001];
-      num = read(fd, buff, 10000);
-
-      if (num < 0) { perror("read"); break; }
-      if (num == 0) break; // server closed
-
-      // print exactly what we read (don’t rely on null terminators)
-      write(STDOUT_FILENO, buff, num);
-   }
-
+   num = getline(&line, &size, stdin);
+   write(fd, line, num);
+   write(fd, "\r\n", 2);  // automatically send blank line
    free(line);
+
+   char buff[10001];
+   ssize_t n;
+   while ((n = read(fd, buff, 10000)) > 0)
+   {
+      write(STDOUT_FILENO, buff, n);
+   }
 }
 
 int connect_to_server(struct hostent *host_entry)

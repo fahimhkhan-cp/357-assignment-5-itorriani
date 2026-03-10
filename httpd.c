@@ -91,7 +91,7 @@ void handle_request(int nfd)
 
         snprintf(fileSizeBuff, sizeof(fileSizeBuff), "%ld", fileSize); //write onto fileSize buffer
 
-        char *headerInfo = "HTTP/1.0 200 OK\r\n"; //hardcore header info
+        char *headerInfo = "HTTP/1.0 200 OK\n"; //hardcore header info
 
         char *contentTypeInfo = "Content-Type: text/html\r\n"; //content type 
 
@@ -110,14 +110,22 @@ void handle_request(int nfd)
 
 
 
-        char buff[10000]; //create buff
 
 
-        while ((fgets(buff, sizeof(buff), file)) != NULL)
-        {
+      char buff[4096];
+      size_t n;
 
-              
-        }
+
+      //AI Generated fix to print the contents of a file
+      while ((n = fread(buff, 1, sizeof(buff), file)) > 0) {
+         size_t off = 0;
+         while (off < n) {
+            ssize_t w = write(nfd, buff + off, n - off);
+            if (w <= 0) { /* error */ break; }
+            off += (size_t)w;
+         }
+      }
+      //AI Generated fix to print the contents of a file
 
         fclose(file); //close file
 
