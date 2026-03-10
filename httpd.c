@@ -63,6 +63,8 @@ void handle_request(int nfd)
 
    char *HTTPVERSION = strtok(NULL, " \n"); 
 
+   FILENAME++; //increment filename to ignore the leading slash
+
    if (strcmp(TYPE, "GET") == 0)
    {    
         struct stat st; //intiialize stat structure
@@ -188,7 +190,7 @@ void run_service(int fd)
          }
          
          
-         printf("Connection closed\n");
+         
       }
    }
 }
