@@ -25,8 +25,7 @@ void sig_handler(int signum)
 }
 
 /*
-Idea: Sets up listening socket on port 2828, then passes it to run service. Run service loops accept connection 
-which waits until a client connects and returns with a new file descriptor.
+GET /index.html HTTP/1.1
 
 */
 void handle_request(int nfd)
@@ -37,10 +36,10 @@ void handle_request(int nfd)
 
    Change it so that it sends data back to client. 
    */
-   FILE *network = fdopen(nfd, "r"); 
+   FILE *network = fdopen(nfd, "r");   
 
    char *line = NULL;
-   size_t size;
+   size_t size = 0;
    ssize_t num;
 
    if (network == NULL)//error checking
@@ -64,6 +63,8 @@ void handle_request(int nfd)
    char *HTTPVERSION = strtok(NULL, " \n"); 
 
    FILENAME++; //increment filename to ignore the leading slash
+
+   
 
    if (strcmp(TYPE, "GET") == 0)
    {    
@@ -91,15 +92,32 @@ void handle_request(int nfd)
         write(nfd, contentLengthLabel, strlen(contentLengthLabel));
 
         write(nfd, fileSizeBuff, strlen(fileSizeBuff));
+        
+        write(nfd, "\r\n\r\n", 4);
 
-        write(nfd, "\r\n\r\n", 4); //create visual space
 
-        FILE *file = fopen(FILENAME, "r"); //open file
+      FILE *file = fopen(FILENAME, "r");
+      if (file == NULL) {
+         perror("fopen");
+         const char *notfound = "HTTP/1.0 404 Not Found\r\nContent-Length: 0\r\n\r\n";
+         write(nfd, notfound, strlen(notfound));
+         free(line);
+         fclose(network);
+         return;
+}
 
         char buff[500]; //create buff
 
-        while (fgets(buff, sizeof(buff), file) != NULL)
+
+        while ((fgets(buff, sizeof(buff), file)) != NULL)
         {
+            int ret = write(nfd, buff, strlen(buff));
+
+         
+            printf("number associated with smomething: %d", ret);
+
+            printf("am i being read: %s", buff); 
+
             write(nfd, buff, strlen(buff)); //write fie contents
         }
 
@@ -119,9 +137,9 @@ void handle_request(int nfd)
 
         snprintf(fileSizeBuff, sizeof(fileSizeBuff), "%ld", fileSize); // write in fileSize into fileSizeBuff
 
-        char *headerInfo = "HTTP/1.0 200 OK\r\n"; //hardcode header info
+        char *headerInfo = "HTTP/1.0 200 OK\n"; //hardcode header info
 
-        char *contentTypeInfo = "Content-Type: text/html\r\n";
+        char *contentTypeInfo = "Content-Type: text/html\n";
 
         char *contentLengthLabel = "Content-Length: ";
 
@@ -135,13 +153,13 @@ void handle_request(int nfd)
 
         write(nfd, fileSizeBuff, strlen(fileSizeBuff));
 
-        write(nfd, "\r\n\r\n", 4); //create visual space
+        write(nfd, "\n", 4); //create visual space
    
     
    }
 
-
    free(line); // valgrind related
+
    fclose(network); //valgrind related
 }
 
