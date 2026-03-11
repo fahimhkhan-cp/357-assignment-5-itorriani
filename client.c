@@ -97,12 +97,16 @@ int main(int argc, char *argv[])
 
    if (host_entry)
    {
-      int fd = connect_to_server(host_entry);
-      if (fd != -1)
+      while (1)
       {
-         send_request(fd);
-         close(fd);
+         int fd = connect_to_server(host_entry);
+         if (fd != -1)
+         {
+            send_request(fd);
+            close(fd);
+         }
       }
+
    }
 
    return 0;
