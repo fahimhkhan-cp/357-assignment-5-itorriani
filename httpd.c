@@ -177,6 +177,10 @@ void handle_request(int nfd)
         fclose(file);
       
    }
+   char drain[256];
+   while (fgets(drain, sizeof(drain), network) != NULL &&
+          strcmp(drain, "\r\n") != 0 &&
+          strcmp(drain, "\n") != 0);
 
    free(line); // valgrind related
 
