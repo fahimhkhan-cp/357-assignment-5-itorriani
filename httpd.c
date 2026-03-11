@@ -371,14 +371,15 @@ void run_service(int fd)
 
    while (1)
    {
+
       int nfd = accept_connection(fd); //waits for client to connect, then returns file descriptor of that client
 
-   
+      
+
       if (nfd != -1)
       { 
 
          printf("Connection established\n");
-
 
          f1 = fork();
 
@@ -415,7 +416,11 @@ int main(int argc, char *argv[])
 
     if (fd == -1) { printf("%s", "Create service failed"); return 1; } //socket fail check
 
-    printf("Listening on port: %hd", PORT); // print message indicating listening status
+    printf("Listening on port: %hd\n", PORT); // print message indicating listening status
+
+    fflush(stdout); //format related check
+
+
 
     run_service(fd); //
 
