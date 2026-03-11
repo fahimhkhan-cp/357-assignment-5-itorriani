@@ -65,6 +65,19 @@ void handle_request(int nfd)
 
    char *FILENAME = strtok(NULL, " \r\n");
 
+   if (TYPE == NULL || FILENAME == NULL)
+   {
+      char *ermsg = "HTTP/1.0 400 Bad Request\r\nContent-Type: text/html\r\nContent-Length: 15\r\n\r\n400 Bad Request";
+
+      write(nfd, ermsg, strlen(ermsg));
+
+      free(line); 
+      
+      fclose(network); 
+      
+      return; 
+   }
+
    char *HTTPVERSION = strtok(NULL, " \n"); 
 
    FILENAME++; //increment filename to ignore the leading slash
@@ -84,6 +97,18 @@ void handle_request(int nfd)
          fclose(network);
          return;
 }
+      if (access(FILENAME, R_OK) != 0) 
+      {
+         /*
+         Check for access errors
+         */
+         const char *forbidden = "HTTP/1.0 403 Permission Denied\r\nContent-Type: text/html\r\nContent-Length: 21\r\n\r\n403 Permission Denied"; 
+
+         write(nfd, forbidden, strlen(forbidden));
+         
+         free(line); fclose(network); return;
+      
+      }
         struct stat st; //intiialize stat structure
 
         lstat(FILENAME, &st); // populate stat struct
@@ -129,8 +154,10 @@ void handle_request(int nfd)
          }
       }
       //AI Generated fix to print the contents of a file
+      
+      write(nfd, "\n\n", 2); // new lines for readability
 
-        fclose(file); //close file
+      fclose(file); //close file
 
 
 
@@ -147,6 +174,18 @@ void handle_request(int nfd)
          fclose(network);
          return;
 }
+      if (access(FILENAME, R_OK) != 0) 
+      {
+         /*
+         Check for access errors
+         */
+         const char *forbidden = "HTTP/1.0 403 Permission Denied"; 
+
+         write(nfd, forbidden, strlen(forbidden));
+         
+         free(line); fclose(network); return;
+      
+      }
         struct stat st; //intiialize stat structure
 
         lstat(FILENAME, &st); // populate stat struct
@@ -177,6 +216,20 @@ void handle_request(int nfd)
         fclose(file);
       
    }
+   else 
+   {
+      char* ermsgOther = "HTTP/1.0 501 Not Implemented\r\nContent-Type: text/html\r\nContent-Length: 19\r\n\r\n501 Not Implemented";
+
+      write(nfd, ermsgOther, strlen(ermsgOther));
+
+      free(line); 
+      
+      fclose(network); 
+      
+      return; 
+   }
+
+
    char drain[256];
    while (fgets(drain, sizeof(drain), network) != NULL &&
           strcmp(drain, "\r\n") != 0 &&
