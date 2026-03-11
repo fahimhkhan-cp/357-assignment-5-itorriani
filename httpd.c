@@ -15,7 +15,10 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
-
+/*
+GET /test.txt HTTP/1.1
+HEAD /test.txt HTTP/1.1
+*/
 #define PORT 2828
 
 void sig_handler(int signum)
@@ -133,24 +136,34 @@ void handle_request(int nfd)
 
    } else if (strcmp(TYPE, "HEAD") == 0)
    {
-        struct stat st;
 
-        lstat(FILENAME, &st); //populate stat struct with information 
+      FILE *file = fopen(FILENAME, "r");
+      
+      if (file == NULL) {
+         perror("fopen");
+         const char *notfound = "HTTP/1.0 404 Not Found\r\nContent-Length: 0\r\n\r\n";
+         write(nfd, notfound, strlen(notfound));
+         free(line);
+         fclose(network);
+         return;
+}
+        struct stat st; //intiialize stat structure
 
-        long fileSize = st.st_size; // create variable for size
+        lstat(FILENAME, &st); // populate stat struct
 
-        char fileSizeBuff[100]; //create string representation of fileSize
+        long fileSize = st.st_size; //create variable for file size
+        
+        char fileSizeBuff[100]; //create buffer for filesize
 
-        snprintf(fileSizeBuff, sizeof(fileSizeBuff), "%ld", fileSize); // write in fileSize into fileSizeBuff
+        snprintf(fileSizeBuff, sizeof(fileSizeBuff), "%ld", fileSize); //write onto fileSize buffer
 
-        char *headerInfo = "HTTP/1.0 200 OK\n"; //hardcode header info
+        char *headerInfo = "HTTP/1.0 200 OK\n"; //hardcore header info
 
-        char *contentTypeInfo = "Content-Type: text/html\n";
+        char *contentTypeInfo = "Content-Type: text/html\n"; //content type 
 
-        char *contentLengthLabel = "Content-Length: ";
+        char *contentLengthLabel = "Content-Length: "; //content length
 
         //write all info to client
-
         write(nfd, headerInfo, strlen(headerInfo));
 
         write(nfd, contentTypeInfo, strlen(contentTypeInfo));
@@ -158,10 +171,11 @@ void handle_request(int nfd)
         write(nfd, contentLengthLabel, strlen(contentLengthLabel));
 
         write(nfd, fileSizeBuff, strlen(fileSizeBuff));
+        
+        write(nfd, "\n\n", 2);
 
-        write(nfd, "\n", 4); //create visual space
-   
-    
+        fclose(file);
+      
    }
 
    free(line); // valgrind related

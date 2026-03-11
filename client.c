@@ -38,7 +38,7 @@ void send_request(int fd)
 
    num = getline(&line, &size, stdin);
    write(fd, line, num);
-   write(fd, "\r\n", 2);  // automatically send blank line
+   write(fd, "\r\n", 2);
    free(line);
 
    char buff[10001];
