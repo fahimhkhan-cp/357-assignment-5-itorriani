@@ -4,7 +4,6 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <stdio.h>
-#include <unistd.h>
 #include <signal.h>
 #include <stdlib.h>   
 #include <sys/wait.h> 
@@ -25,6 +24,95 @@ void sig_handler(int signum)
 {
    while (waitpid(-1, NULL, WNOHANG) > 0) { //do nothing, just check for desired signal in loop }
       }
+}
+
+void cgiLike(char* name, int nfd, char *line, FILE *network)
+{
+
+      
+      char *argArray[100]; //initiailize argument array
+
+      int argPopulator = 0; 
+
+      argArray[argPopulator++] = strtok(name, "?");
+
+      char *arg = strtok(NULL, "&"); //begin splitting arguments
+
+      while (arg != NULL) { argArray[argPopulator++] = arg; arg = strtok(NULL, "&"); } // continue to split and append args
+
+      argArray[argPopulator] = NULL; //null terminate
+
+
+      char tmp[300]; //create a buffer for the output to track size
+
+      snprintf(tmp, sizeof(tmp),"/tmp/%d.txt", getpid()); // assign pid
+
+      pid_t f1 = fork(); //create fork
+
+      if (f1 == 0)
+      {
+         int tmpfd = open(tmp, O_WRONLY | O_CREAT | O_TRUNC, 777); //open file
+
+         dup2(tmpfd, STDOUT_FILENO); //redirect output
+
+         close(tmpfd); //close it
+
+         execv(argArray[0], argArray); //execute
+
+         perror(argArray[0]);  // error checking
+
+
+         _exit(1); //if fails, reach this point and indicate such
+
+      } else if (f1 < 0) {
+
+         char *err = "HTTP/1.0 500 Internal Error\r\nContent-Type: text/html\r\nContent-Length: 18\r\n\r\n500 Internal Error"; //error msg
+
+         write(nfd, err, strlen(err)); // write error message
+
+         free(line); fclose(network); return; //chores
+
+
+      }
+
+      waitpid(f1, NULL, 0); //wait for child to finish
+
+      //Functionality for ptining headers
+      struct stat st;
+
+      stat(tmp, &st);
+
+      long fileSize = st.st_size;
+
+      char fileSizeBuff[100];
+
+      snprintf(fileSizeBuff, sizeof(fileSizeBuff), "%ld", fileSize);
+
+      write(nfd, "HTTP/1.0 200 OK\n", 16);
+
+      write(nfd, "Content-Type: text/html\r\n", 25);
+
+      write(nfd, "Content-Length: ", 16);
+
+      write(nfd, fileSizeBuff, strlen(fileSizeBuff));
+
+      write(nfd, "\r\n\r\n", 4);
+
+      FILE *tmpfp = fopen(tmp, "r");
+
+      char buff[4096];
+
+      size_t n;
+
+      while ((n = fread(buff, 1, sizeof(buff), tmpfp)) > 0)
+
+        write(nfd, buff, n); //write out output that was stored
+
+      fclose(tmpfp); // memory / vagrlind related
+
+      remove(tmp); // memory/valgrind related
+
+      free(line); fclose(network); return;
 }
 
 /*
@@ -86,6 +174,13 @@ void handle_request(int nfd)
 
    if (strcmp(TYPE, "GET") == 0)
    {    
+      //Cgi related functionality
+      if (strncmp(FILENAME, "cgi-like/", 9) == 0)
+      {
+         cgiLike(FILENAME, nfd, line, network);
+
+         return;
+      }    
       
       FILE *file = fopen(FILENAME, "r");
       
@@ -109,6 +204,8 @@ void handle_request(int nfd)
          free(line); fclose(network); return;
       
       }
+
+ 
         struct stat st; //intiialize stat structure
 
         lstat(FILENAME, &st); // populate stat struct
