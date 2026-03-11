@@ -17,6 +17,9 @@
 /*
 GET /test.txt HTTP/1.1
 HEAD /test.txt HTTP/1.1
+
+GET /cgi-like/test HTTP/1.1
+GET /cgi-like/test2?hello HTTP/1.1
 */
 #define PORT 2828
 
