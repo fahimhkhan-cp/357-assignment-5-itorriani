@@ -277,7 +277,7 @@ void handle_request(int nfd)
       
       if (file == NULL) {
          perror("fopen");
-         const char *notfound = "HTTP/1.0 404 Not Found\r\nContent-Type: text/html\r\nContent-Length: 13\r\n\r\n404 Not Found";
+         const char *notfound = "HTTP/1.0 404 Not Found\r\nContent-Type: text/html\r\nContent-Length: 13\r\n";
          write(nfd, notfound, strlen(notfound));
          free(line);
          fclose(network);
@@ -327,7 +327,7 @@ void handle_request(int nfd)
    }
    else 
    {
-      char* ermsgOther = "HTTP/1.0 501 Not Implemented\r\nContent-Type: text/html\r\nContent-Length: 19\r\n\r\n501 Not Implemented";
+      char* ermsgOther = "HTTP/1.0 501 Not Implemented\r\nContent-Type: text/html\r\nContent-Length: 19\r\n";
 
       write(nfd, ermsgOther, strlen(ermsgOther));
 
