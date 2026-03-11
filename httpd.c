@@ -157,7 +157,7 @@ void handle_request(int nfd)
 
    if (TYPE == NULL || FILENAME == NULL)
    {
-      char *ermsg = "HTTP/1.0 400 Bad Request\r\nContent-Type: text/html\r\nContent-Length: 15\r\n\r\n400 Bad Request";
+      char *ermsg = "HTTP/1.0 400 Bad Request\r\nContent-Type: text/html\r\nContent-Length: 15\r\n";
 
       write(nfd, ermsg, strlen(ermsg));
 
