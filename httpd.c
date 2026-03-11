@@ -21,7 +21,6 @@ HEAD /test.txt HTTP/1.1
 GET /cgi-like/test HTTP/1.1
 GET /cgi-like/test2?hello HTTP/1.1
 */
-#define PORT 2828
 
 void sig_handler(int signum)
 {
@@ -173,6 +172,16 @@ void handle_request(int nfd)
 
    FILENAME++; //increment filename to ignore the leading slash
 
+   if (strstr(FILENAME, "..") != NULL)
+   {  
+    const char *err = "HTTP/1.0 403 Permission Denied\r\nContent-Type: text/html\r\nContent-Length: 21\r\n\r\n403 Permission Denied"; //error message
+
+    write(nfd, err, strlen(err)); //write to client
+
+    free(line); fclose(network); return; //chores
+   }
+
+
    
 
    if (strcmp(TYPE, "GET") == 0)
@@ -189,7 +198,7 @@ void handle_request(int nfd)
       
       if (file == NULL) {
          perror("fopen");
-         const char *notfound = "HTTP/1.0 404 Not Found\r\nContent-Length: 0\r\n\r\n";
+         const char *notfound = "HTTP/1.0 404 Not Found\r\nContent-Type: text/html\r\nContent-Length: 13\r\n\r\n404 Not Found";
          write(nfd, notfound, strlen(notfound));
          free(line);
          fclose(network);
@@ -268,7 +277,7 @@ void handle_request(int nfd)
       
       if (file == NULL) {
          perror("fopen");
-         const char *notfound = "HTTP/1.0 404 Not Found\r\nContent-Length: 0\r\n\r\n";
+         const char *notfound = "HTTP/1.0 404 Not Found\r\nContent-Type: text/html\r\nContent-Length: 13\r\n\r\n404 Not Found";
          write(nfd, notfound, strlen(notfound));
          free(line);
          fclose(network);
@@ -391,13 +400,16 @@ void run_service(int fd)
 }
 
 
-int main()
+int main(int argc, char *argv[])
 {
     /*
     argv[1]: port number
     */
 
     // short portNumber = atoi(argv[1]); // define port number as a short
+    if (argv[1] == NULL) { printf("Provide a port"); return 1; }
+   
+    int PORT = atoi(argv[1]);
 
     int fd = create_service(PORT); // create socket and bind to given port
 

@@ -4,10 +4,9 @@
 #include <netdb.h>
 #include <unistd.h>
 
-#define PORT 2828
 
-#define MIN_ARGS 2
-#define MAX_ARGS 2
+#define MIN_ARGS 3
+#define MAX_ARGS 3
 #define SERVER_ARG_IDX 1
 
 #define USAGE_STRING "usage: %s <server address>\n"
@@ -49,7 +48,7 @@ void send_request(int fd)
    }
 }
 
-int connect_to_server(struct hostent *host_entry)
+int connect_to_server(struct hostent *host_entry, int portNumber)
 {
    /*
    Creates a socket and connects it to the server. 
@@ -64,7 +63,7 @@ int connect_to_server(struct hostent *host_entry)
    }
    
    their_addr.sin_family = AF_INET;
-   their_addr.sin_port = htons(PORT);
+   their_addr.sin_port = htons(portNumber);
    their_addr.sin_addr = *((struct in_addr *)host_entry->h_addr);
 
    if (connect(fd, (struct sockaddr *)&their_addr,
@@ -99,7 +98,9 @@ int main(int argc, char *argv[])
    {
       while (1)
       {
-         int fd = connect_to_server(host_entry);
+         int port = atoi(argv[2]); 
+
+         int fd = connect_to_server(host_entry, port);
          if (fd != -1)
          {
             send_request(fd);
